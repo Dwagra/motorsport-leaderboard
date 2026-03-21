@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Leaderboard</title>
+<style>
+body{background:black;color:white;font-family:Arial}
+body.obs{background:transparent}
+table{width:100%;font-size:22px}
+.first{background:gold;color:black}
+.run{color:#0f0}.pit{color:red}
+.fast{color:violet;font-weight:bold}
+tr{transition:.3s}
+</style>
+</head>
+<body>
+
+<h1>🏁 LIVE LEADERBOARD</h1>
+<table id="b"></table>
+
+<script>
+const url="https://opensheet.elk.sh/1RhK5IGiNsl8yZrteDAv_eO1AzmcczDNJXH1nAYkJ9sY/1";
+let prev={};
+
+function t(x){if(!x||x=="-")return 9999;let p=x.split(":");return p[0]*60+ +p[1]}
+
+async function load(){
+let d=await fetch(url).then(r=>r.json());
+let f=Math.min(...d.map(r=>t(r.lastLap)));
+let h="<tr><th>POS</th><th>NAME</th><th>LAP</th><th>TIME</th><th>GAP</th><th>STATUS</th></tr>";
+
+d.forEach(r=>{
+let s=r.status=="RUN"?"run":"pit";
+let fast=t(r.lastLap)==f?"fast":"";
+let move="";
+if(prev[r.name]){
+ if(r.position<prev[r.name])move="up";
+ if(r.position>prev[r.name])move="down";
+}
+prev[r.name]=r.position;
+
+h+=`<tr class="${r.position==1?"first":""} ${move}">
+<td>${r.position}</td>
+<td>${r.name}</td>
+<td>${r.lap}</td>
+<td class="${fast}">${r.lastLap}</td>
+<td>${r.gap}</td>
+<td class="${s}">${r.status}</td>
+</tr>`;
+});
+
+document.getElementById("b").innerHTML=h;
+}
+
+setInterval(load,1000);load();
+
+if(location.search.includes("obs"))document.body.classList.add("obs");
+document.onclick=()=>document.documentElement.requestFullscreen();
+</script>
+
+</body>
+</html>
